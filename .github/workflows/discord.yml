@@ -20,4 +20,4 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
                -d '{"content": "A new commit has been pushed to the repository!"}' \
-               DISCORD_WEBHOOK_3
+               ${{ secrets.DISCORD_WEBHOOK_3 }}
