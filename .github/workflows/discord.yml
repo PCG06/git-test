@@ -9,11 +9,9 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Notification to Discord
+        - name: Send Notification to Discord
         run: |
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d '{
+          payload='{
             "embeds": [{
               "title": "New Commit on Main!",
               "description": "A new commit has been pushed to the main branch.",
@@ -31,5 +29,6 @@ jobs:
                 }
               ]
             }]
-          }' \
-          ${{ secrets.DISCORD_WEBHOOK_3 }}
+          }'
+          curl -H "Content-Type: application/json" -X POST -d "$payload" ${{ secrets.DISCORD_WEBHOOK_3 }}
+
