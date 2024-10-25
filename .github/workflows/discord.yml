@@ -18,6 +18,7 @@ jobs:
 
       - name: Send Discord Notification
         run: |
+          COMMIT_HASH="${GITHUB_SHA:0:6}"
           curl -H "Content-Type: application/json" \
-               -d '{"content": "A new commit has been pushed to the repository!"}' \
+               -d "{\"content\": \"A new commit ($COMMIT_HASH) has been pushed to the repository!\"}" \
                ${{ secrets.DISCORD_WEBHOOK_3 }}
