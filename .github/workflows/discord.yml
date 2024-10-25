@@ -1,0 +1,35 @@
+name: Discord Notification
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Notification to Discord
+        run: |
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d '{
+            "embeds": [{
+              "title": "New Commit on Main!",
+              "description": "A new commit has been pushed to the main branch.",
+              "color": 65280,
+              "fields": [
+                {
+                  "name": "Commit:",
+                  "value": "[${{ github.event.head_commit.message }}](${{ github.event.head_commit.url }})",
+                  "inline": false
+                },
+                {
+                  "name": "Committed by:",
+                  "value": "[${{ github.actor }}](https://github.com/${{ github.actor }})",
+                  "inline": false
+                }
+              ]
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_3 }}
