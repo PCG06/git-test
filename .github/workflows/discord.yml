@@ -22,5 +22,5 @@ jobs:
           COMMIT_URL="$REPO_URL/commit/${GITHUB_SHA}"
           COMMIT_HASH="${GITHUB_SHA:0:6}"
           curl -H "Content-Type: application/json" \
-               -d "{\"content\": \"A new commit [`$COMMIT_HASH`]($COMMIT_URL) has been pushed to the repository!\"}" \
+               -d "{\"content\": \"A new commit [\`${COMMIT_HASH}\`](${COMMIT_URL}) has been pushed to the repository!\"}" \
                ${{ secrets.DISCORD_WEBHOOK_3 }}
