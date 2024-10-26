@@ -1,41 +1,22 @@
 name: Discord Notification on Push
 
-on: 
-  push:
-    branches:
-      - main
+on: push
 
 jobs:
   notify:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Set Commit Hash and Author Details
+      - name: Set up commit info and send to Discord
+        shell: bash
         run: |
           COMMIT_HASH="${GITHUB_SHA:0:6}"
-          AUTHOR_NAME="${{ github.actor }}"
-          AUTHOR_URL="https://github.com/${{ github.actor }}"
-          AUTHOR_ICON="https://github.com/${{ github.actor }}.png"
-
-      - name: Send Discord Notification
-        env:
-          COMMIT_HASH: "${GITHUB_SHA:0:6}"
-          AUTHOR_NAME: "${{ github.actor }}"
-          AUTHOR_URL: "https://github.com/${{ github.actor }}"
-          AUTHOR_ICON: "https://github.com/${{ github.actor }}.png"
-        run: |
           curl -H "Content-Type: application/json" \
           -X POST \
           -d '{
             "embeds": [{
-              "title": "Patch Created!",
-              "url": "${{ github.event.head_commit.url }}",
+              "title": "New Commit Pushed!",
               "color": 65280,
-              "author": {
-                "name": "'"${AUTHOR_NAME}"'",
-                "url": "'"${AUTHOR_URL}"'",
-                "icon_url": "'"${AUTHOR_ICON}"'"
-              },
               "fields": [
                 {
                   "name": "Download",
@@ -44,7 +25,7 @@ jobs:
                 },
                 {
                   "name": "Commit",
-                  "value": "[\`'"$COMMIT_HASH"'\`](<${{ github.event.head_commit.url }>) - ${{ github.event.head_commit.message }}",
+                  "value": "[`'"$COMMIT_HASH"'`](<https://github.com/${{ github.repository }}/commit/${{ github.sha }}>) - ${{ github.event.head_commit.message }}",
                   "inline": false
                 }
               ]
