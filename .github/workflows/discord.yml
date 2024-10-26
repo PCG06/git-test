@@ -45,9 +45,25 @@ jobs:
 
       - name: Send Discord Notification
         run: |
-          REPO_URL="https://github.com/${{ github.repository }}"
-          COMMIT_URL="$REPO_URL/commit/${GITHUB_SHA}"
           COMMIT_HASH="${GITHUB_SHA:0:6}"
           curl -H "Content-Type: application/json" \
-               -d "{\"content\": \"A new commit [\`$COMMIT_HASH\`](<$COMMIT_URL>) has been pushed to the repository!\"}" \
-               ${{ secrets.DISCORD_WEBHOOK_3 }}
+          -X POST \
+          -d '{
+            "embeds": [{
+              "title": "New Commit Pushed!",
+              "color": 65280,
+              "fields": [
+                {
+                  "name": "Download",
+                  "value": "[Click here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.artifact_id }})",
+                  "inline": false
+                },
+                {
+                  "name": "Commit",
+                  "value": "[`'"$COMMIT_HASH"'`](<https://github.com/${{ github.repository }}/commit/${{ github.sha }}>) - ${{ github.event.head_commit.message }}",
+                  "inline": false
+                }
+              ]
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_3 }}
