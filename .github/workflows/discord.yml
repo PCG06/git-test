@@ -1,6 +1,6 @@
 name: Discord Notification on Push
 
-on:
+on: 
   push:
     branches:
       - main
@@ -10,17 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install curl
-        run: sudo apt-get install curl
+      - name: Set Commit Hash and Author Details
+        run: |
+          COMMIT_HASH="${GITHUB_SHA:0:6}"
+          AUTHOR_NAME="${{ github.actor }}"
+          AUTHOR_URL="https://github.com/${{ github.actor }}"
+          AUTHOR_ICON="https://github.com/${{ github.actor }}.png"
 
       - name: Send Discord Notification
+        env:
+          COMMIT_HASH: "${GITHUB_SHA:0:6}"
+          AUTHOR_NAME: "${{ github.actor }}"
+          AUTHOR_URL: "https://github.com/${{ github.actor }}"
+          AUTHOR_ICON: "https://github.com/${{ github.actor }}.png"
         run: |
-          REPO_URL="https://github.com/${{ github.repository }}"
-          COMMIT_URL="$REPO_URL/commit/${GITHUB_SHA}"
-          COMMIT_HASH="${GITHUB_SHA:0:6}"
           curl -H "Content-Type: application/json" \
-               -d "{\"content\": \"A new commit [\`$COMMIT_HASH\`](<$COMMIT_URL>) has been pushed to the repository!\"}" \
-               ${{ secrets.DISCORD_WEBHOOK_3 }}
+          -X POST \
+          -d '{
+            "embeds": [{
+              "title": "Patch Created!",
+              "url": "${{ github.event.head_commit.url }}",
+              "color": 65280,
+              "author": {
+                "name": "'"${AUTHOR_NAME}"'",
+                "url": "'"${AUTHOR_URL}"'",
+                "icon_url": "'"${AUTHOR_ICON}"'"
+              },
+              "fields": [
+                {
+                  "name": "Download",
+                  "value": "[Click here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.artifact_id }})",
+                  "inline": false
+                },
+                {
+                  "name": "Commit",
+                  "value": "[\`'"$COMMIT_HASH"'\`](<${{ github.event.head_commit.url }>) - ${{ github.event.head_commit.message }}",
+                  "inline": false
+                }
+              ]
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_3 }}
