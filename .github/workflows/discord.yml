@@ -28,10 +28,10 @@ jobs:
       - name: Upload to GoFile
         id: upload
         run: |
-          RESPONSE=$(curl -s -F "file=@patch.zip" https://api.gofile.io/uploadFile)
-          echo "Gofile raw response:"
-          echo "$RESPONSE"
-          echo "$RESPONSE" | jq .
+          SERVER=$(curl -s https://api.gofile.io/getServer | jq -r '.data.server')
+          RESPONSE=$(curl -s -F "file=@patch.zip" "https://$SERVER.gofile.io/uploadFile")
+          DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
 
       - name: Send Discord Notification
         run: |
