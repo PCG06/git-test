@@ -25,14 +25,14 @@ jobs:
           echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
           echo "PATCH_NAME=$PATCH_NAME" >> $GITHUB_ENV
 
-      - name: Upload to GoFile
+      - name: Upload to Pixeldrain
         id: upload
         run: |
-          SERVER=$(curl -s https://api.gofile.io/getServer | jq -r '.data.server')
-          RESPONSE=$(curl -s -F "file=@patch.zip" "https://$SERVER.gofile.io/uploadFile")
-          DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+          RESPONSE=$(curl -s -F "file=@patch.zip" https://pixeldrain.com/api/file)
+          DOWNLOAD_ID=$(echo "$RESPONSE" | jq -r '.id')
+          DOWNLOAD_URL="https://pixeldrain.com/api/file/${DOWNLOAD_ID}?download"
           echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
-
+        
       - name: Send Discord Notification
         run: |
           curl -H "Content-Type: application/json" \
