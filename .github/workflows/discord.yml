@@ -11,30 +11,46 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install curl
-        run: sudo apt-get install curl
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y curl zip
 
-      - name: Send failure notification to Discord
-        shell: bash 
+      - name: Zip the patch
         run: |
-          COMMIT_HASH="${GITHUB_SHA:0:6}"
+          COMMIT_HASH="${GITHUB_SHA:0:7}"
+          ZIP_NAME="Pokemon_YAEEH_${COMMIT_HASH}.zip"
+          zip -j "$ZIP_NAME" assets/Pokemon_YAEEH.bps
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+
+      - name: Upload to Catbox
+        id: upload
+        run: |
+          RESPONSE=$(curl -s -F "reqtype=fileupload" -F "fileToUpload=@${{ env.ZIP_NAME }}" https://catbox.moe/user/api.php)
+          echo "DOWNLOAD_URL=$RESPONSE" >> $GITHUB_ENV
+
+      - name: Send Discord Notification
+        run: |
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{
                  \"embeds\": [{
-                   \"title\": \"CI Job Passed\",
-                   \"description\": \"A CI job has passed.\",
-                   \"color\": 16711680,
+                   \"title\": \"New Patch Uploaded!\",
+                   \"color\": 65280,
                    \"fields\": [
                      {
-                       \"name\": \"Commit:\",
-                       \"value\": \"[\`$COMMIT_HASH\`](<${{ github.event.head_commit.url }}>) ${{ github.event.head_commit.message }}\",
+                       \"name\": \"Download:\",
+                       \"value\": \"[Click here](${{ env.DOWNLOAD_URL }})\",
                        \"inline\": false
                      },
                      {
-                       \"name\": \"Committed by:\",
+                       \"name\": \"Commit:\",
+                       \"value\": \"[\`${{ env.COMMIT_HASH }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) - ${{ github.event.head_commit.message }}\",
+                       \"inline\": false
+                     },
+                     {
+                       \"name\": \"Author:\",
                        \"value\": \"[${{ github.actor }}](https://github.com/${{ github.actor }})\",
                        \"inline\": false
                      }
@@ -42,28 +58,3 @@ jobs:
                  }]
                }" \
                ${{ secrets.DISCORD_WEBHOOK_3 }}
-
-      - name: Send Discord Notification
-        run: |
-          COMMIT_HASH="${GITHUB_SHA:0:6}"
-          curl -H "Content-Type: application/json" \
-          -X POST \
-          -d '{
-            "embeds": [{
-              "title": "New Commit Pushed!",
-              "color": 65280,
-              "fields": [
-                {
-                  "name": "Download",
-                  "value": "[Click here](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.artifact_id }})",
-                  "inline": false
-                },
-                {
-                  "name": "Commit",
-                  "value": "[`'"$COMMIT_HASH"'`](<https://github.com/${{ github.repository }}/commit/${{ github.sha }}>) - ${{ github.event.head_commit.message }}",
-                  "inline": false
-                }
-              ]
-            }]
-          }' \
-          ${{ secrets.DISCORD_WEBHOOK_3 }}
