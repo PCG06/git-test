@@ -29,9 +29,8 @@ jobs:
         id: upload
         run: |
           echo "Uploading patch.zip to Pixeldrain..."
-          RESPONSE=$(curl -s -F "file=@patch.zip" https://pixeldrain.com/api/file)
+          RESPONSE=$(curl -s -u user:${{ secrets.PXDRAN_API }} -F "file=@patch.zip" https://pixeldrain.com/api/file)
           echo "Pixeldrain raw response:"
-          echo "$RESPONSE"
           echo "$RESPONSE" | jq .
           DOWNLOAD_ID=$(echo "$RESPONSE" | jq -r '.id')
           DOWNLOAD_URL="https://pixeldrain.com/api/file/${DOWNLOAD_ID}?download"
