@@ -14,42 +14,45 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y curl zip
+        run: sudo apt-get update && sudo apt-get install -y curl zip jq
 
-      - name: Zip the patch
+      - name: Rename and zip the patch
         run: |
           COMMIT_HASH="${GITHUB_SHA:0:7}"
-          ZIP_NAME="Pokemon_YAEEH_${COMMIT_HASH}.zip"
-          zip -j "$ZIP_NAME" assets/Pokemon_YAEEH.bps
-          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          PATCH_NAME="pokeyaeeh_${COMMIT_HASH}.bps"
+          cp assets/Pokemon_YAEEH.bps "$PATCH_NAME"
+          zip -j patch.zip "$PATCH_NAME"
           echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
+          echo "PATCH_NAME=$PATCH_NAME" >> $GITHUB_ENV
 
       - name: Upload to Catbox
         id: upload
         run: |
-          RESPONSE=$(curl -s -F "reqtype=fileupload" -F "fileToUpload=@${{ env.ZIP_NAME }}" https://catbox.moe/user/api.php)
+          RESPONSE=$(curl -s -F "reqtype=fileupload" -F "fileToUpload=@patch.zip" https://catbox.moe/user/api.php)
           echo "DOWNLOAD_URL=$RESPONSE" >> $GITHUB_ENV
 
       - name: Send Discord Notification
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "$(jq -n --arg url "$DOWNLOAD_URL" --arg commit "$COMMIT_HASH" '{
-                 embeds: [{
-                   title: "New Patch Created!",
-                   color: 65280,
-                   fields: [
-                     {
-                       name: "Download",
-                       value: ("[Click here](" + $url + ")"),
-                       inline: false
-                     },
-                     {
-                       name: "Commit",
-                       value: ("`" + $commit + "`"),
-                       inline: false
-                     }
-                   ]
-                 }]
-               }')" \
+               -d "$(jq -n \
+                 --arg url "$DOWNLOAD_URL" \
+                 --arg commit "$COMMIT_HASH" '{
+                   embeds: [ {
+                     title: "Patch created!",
+                     color: 65280,
+                     fields: [
+                       {
+                         name: "Download:",
+                         value: ("[__**Click here**__](" + $url + ")"),
+                         inline: false
+                       },
+                       {
+                         name: "Commit hash:",
+                         value: ("`" + $commit + "`"),
+                         inline: false
+                       }
+                     ]
+                   }]
+                 }')" \
                ${{ secrets.DISCORD_WEBHOOK_3 }}
