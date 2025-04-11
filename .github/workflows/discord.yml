@@ -25,11 +25,12 @@ jobs:
           echo "COMMIT_HASH=$COMMIT_HASH" >> $GITHUB_ENV
           echo "PATCH_NAME=$PATCH_NAME" >> $GITHUB_ENV
 
-      - name: Upload to Catbox
+      - name: Upload to GoFile
         id: upload
         run: |
-          RESPONSE=$(curl -s -F "reqtype=fileupload" -F "fileToUpload=@patch.zip" https://catbox.moe/user/api.php)
-          echo "DOWNLOAD_URL=$RESPONSE" >> $GITHUB_ENV
+          RESPONSE=$(curl -s -F "file=@patch.zip" https://store1.gofile.io/uploadFile)
+          URL=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
+          echo "DOWNLOAD_URL=$URL" >> $GITHUB_ENV
 
       - name: Send Discord Notification
         run: |
