@@ -28,11 +28,9 @@ jobs:
       - name: Upload to GoFile
         id: upload
         run: |
-          RESPONSE=$(curl -s -F "file=@patch.zip" https://store1.gofile.io/uploadFile)
+          RESPONSE=$(curl -s -F "file=@patch.zip" https://api.gofile.io/uploadFile)
           DIRECT_LINK=$(echo "$RESPONSE" | jq -r '.data.downloadPage')
-          curl -s "$DIRECT_LINK" > temp.html
-          DOWNLOAD_URL=$(grep -oP 'href="\K(https://[^"]+?\.zip)' temp.html | head -n 1)
-          echo "DOWNLOAD_URL=$DOWNLOAD_URL" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=$DIRECT_LINK" >> $GITHUB_ENV
 
       - name: Send Discord Notification
         run: |
