@@ -34,27 +34,22 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{
-                 \"embeds\": [{
-                   \"title\": \"New Patch Uploaded!\",
-                   \"color\": 65280,
-                   \"fields\": [
+               -d "$(jq -n --arg url "$DOWNLOAD_URL" --arg commit "$COMMIT_HASH" '{
+                 embeds: [{
+                   title: "New Patch Created!",
+                   color: 65280,
+                   fields: [
                      {
-                       \"name\": \"Download:\",
-                       \"value\": \"[Click here](${{ env.DOWNLOAD_URL }})\",
-                       \"inline\": false
+                       name: "Download",
+                       value: ("[Click here](" + $url + ")"),
+                       inline: false
                      },
                      {
-                       \"name\": \"Commit:\",
-                       \"value\": \"[\`${{ env.COMMIT_HASH }}\`](https://github.com/${{ github.repository }}/commit/${{ github.sha }}) - ${{ github.event.head_commit.message }}\",
-                       \"inline\": false
-                     },
-                     {
-                       \"name\": \"Author:\",
-                       \"value\": \"[${{ github.actor }}](https://github.com/${{ github.actor }})\",
-                       \"inline\": false
+                       name: "Commit",
+                       value: ("`" + $commit + "`"),
+                       inline: false
                      }
                    ]
                  }]
-               }" \
+               }')" \
                ${{ secrets.DISCORD_WEBHOOK_3 }}
